@@ -15,13 +15,15 @@ public class Main
 	public static void main (String args[])
 	{
 		ArrayList<Byte> genotype_xor = SetGenotype();	
-		Ann my_ann = new Ann(genotype_xor, Const.INPUTS, Const.OUPUTS);	//genotype, inputs and ouputs
+		AnnBinnary my_ann = new AnnBinnary(genotype_xor, Const.INPUTS, Const.OUPUTS);	//genotype, inputs and ouputs
 		
 		//System.out.println(sigmoid(0.80133));
 		my_ann.PrintWeightMapping();
+		my_ann.TrainingOffline();
 		
-		DataGenBinary binary = new DataGenBinary(2, 4);
-		binary.PrintDataSet();
+		/*DataGenBinary binary = new DataGenBinary(2, 4);
+		binary.CustomDataSet();
+		binary.PrintDataSet();*/
 		System.out.println("asda");
 	}
 	

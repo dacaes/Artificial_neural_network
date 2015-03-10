@@ -5,10 +5,10 @@ public abstract class DataGen<Gen_type>
 	Gen_type[][] dataset;	//inputs and sets
 	public DataGen(int inputs, int sets)
 	{
-		Generate(inputs,sets);
+		dataset = Generate(inputs,sets);
 	}
 	
-	protected abstract void Generate(int inputs, int sets);
+	protected abstract Gen_type[][] Generate(int inputs, int sets);
 	
 	//TESTING METHODS
 	protected void PrintDataSet()

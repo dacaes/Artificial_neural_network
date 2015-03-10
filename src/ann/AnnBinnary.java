@@ -2,19 +2,32 @@ package ann;
 
 import java.util.ArrayList;
 
+import sun.management.snmp.jvminstr.JvmThreadInstanceEntryImpl.ThreadStateMap.Byte1;
+import dataset.DataGenBinary;
+
 /**
  * Artificial neural network
  * @author Daniel Castaño Estrella
  *
  */
-public class Ann
+public class AnnBinnary
 {
 	//mapping of the connections
 	Byte[][] 	i_o_weights_mapping;	//input -> output mapping
 	Byte[][] 	h_i_weights_mapping;	//input -> hidden mapping
 	Byte[][]	h_o_weights_mapping;	//hidden -> output mapping
+	
+	//arrays for storing values of the neurons
+	byte[] i_neurons;					//input
+	byte[] h_neurons;					//hidden
+	byte[] o_neurons;					//output
+	
+	//arrays for storing values of the weights
+	float[][] 	i_o_weights;			//input -> output weight
+	float[][] 	i_h_weights;			//input -> hidden weight
+	float[][] 	h_o_weights;			//hidden -> output weight
 			
-	public Ann(ArrayList<Byte> genotype, int inputs, int outputs)
+	public AnnBinnary(ArrayList<Byte> genotype, int inputs, int outputs)
 	{
 		final int gen_size = genotype.size();
 		
@@ -23,9 +36,9 @@ public class Ann
 		final int hidden = gen_size / blocks_length - 1;		// -1 for the i_o
 		
 		//arrays for storing values of the neurons
-		int[] i_neurons = new int[inputs];						//input
-		int[] h_neurons = new int[hidden];						//hidden
-		int[] o_neurons_e = new int[outputs];					//expected output
+		i_neurons = new byte[inputs];					//input
+		h_neurons = new byte[hidden];					//hidden
+		o_neurons = new byte[outputs];					//expected output
 		
 		//mapping of weights
 		i_o_weights_mapping = new Byte[inputs][outputs];
@@ -33,9 +46,9 @@ public class Ann
 		h_o_weights_mapping = new Byte[hidden][outputs];
 		
 		//arrays for storing values of the weights
-		float[][] 	i_o_weights = new float[inputs][outputs];		//input -> output weight
-		float[][] 	i_h_weights = new float[hidden][inputs];		//input -> hidden weight
-		float[][] 	h_o_weights = new float[hidden][outputs];		//hidden -> output weight
+		i_o_weights = new float[inputs][outputs];		//input -> output weight
+		i_h_weights = new float[hidden][inputs];		//input -> hidden weight
+		h_o_weights = new float[hidden][outputs];		//hidden -> output weight
 		
 		WeightMapping(genotype, gen_size, blocks_length, inputs, outputs);
 	}
@@ -61,7 +74,6 @@ public class Ann
 				i_o_weights_mapping[input][substraction] = val;
 			}
 				
-			
 			//hidden connections mapping
 			else 
 			{
@@ -96,8 +108,47 @@ public class Ann
 		}		
 	}
 	
+	public void TrainingOffline()
+	{
+		int sets = 4;
+		DataGenBinary binary = new DataGenBinary(i_neurons.length, sets);
+		Byte[][] dataset = binary.CustomDataSet();
+		//binary.PrintDataSet();
+		
+		for (int i = 0, max = dataset[0].length; i < max ; i++)
+		{
+			for (int j = 0, max2 = dataset.length; j < max2; j++)
+			{
+				//fill input neurons with values in this iteration of dataset 
+				i_neurons[j] = dataset[j][i];
+			}
+			FeedForward();
+			//ExpectedValues();
+			//BackPropagation();
+			//WeightCorrection();
+		}
+	}
 	
-	//TESTING METHODS
+	private void FeedForward()
+	{
+		//real output of hidden neurons
+		int h_size = h_neurons.length;
+		int i_size = i_neurons.length;
+		
+		for (int i = 0; i < h_size ; i++)
+		{
+			for (int j = 0; j < i_size ; j++)
+			{
+				if(h_i_weights_mapping[i][j] == 1)
+				{
+					
+					h_neurons[i] += (byte)((int) i_neurons * (int) i_h_weights[i][j]);
+				}
+			}
+		}
+	}
+	
+	/////////////////////////////////////TESTING METHODS/////////////////////////////////
 	public void PrintWeightMapping()
 	{
 		System.out.println("###_WEIGHT MAPPING_###\n");
