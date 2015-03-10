@@ -12,7 +12,7 @@ public class Ann
 	//mapping of the connections
 	Byte[][] 	i_o_weights_mapping;	//input -> output mapping
 	Byte[][] 	h_i_weights_mapping;	//input -> hidden mapping
-	Byte[][] 	h_o_weights_mapping;	//hidden -> output mapping
+	Byte[][]	h_o_weights_mapping;	//hidden -> output mapping
 			
 	public Ann(ArrayList<Byte> genotype, int inputs, int outputs)
 	{
@@ -104,7 +104,7 @@ public class Ann
 		System.out.println("IO_WM: ");
 		for(int i = 0, max = i_o_weights_mapping.length; i < max ; i++ )
 		{
-			for(int j = 0; j < i_o_weights_mapping[i].length ; j++ )
+			for(int j = 0, max2 = i_o_weights_mapping[0].length; j < max2 ; j++ )
 			{
 				System.out.print("I[" + i + "] -> O[" + j + "]:__ ");
 				System.out.print(i_o_weights_mapping[i][j]);
