@@ -1,8 +1,7 @@
 package ann;
 
 import java.util.ArrayList;
-
-import dataset.DataGenBinary;
+import java.util.Random;
 
 /**
  * Main class. The executor.
@@ -11,20 +10,22 @@ import dataset.DataGenBinary;
  */
 public class Main
 {
-	public static final int inputs = 3;
 	public static void main (String args[])
 	{
 		ArrayList<Byte> genotype_xor = SetGenotype();	
-		AnnBinnary my_ann = new AnnBinnary(genotype_xor, Const.INPUTS, Const.OUPUTS);	//genotype, inputs and ouputs
+		Ann my_ann = new Ann(genotype_xor, Const.INPUTS, Const.OUPUTS, Const.LEARN_FACTOR);	//genotype, inputs and ouputs
 		
 		//System.out.println(sigmoid(0.80133));
-		my_ann.PrintWeightMapping();
-		my_ann.TrainingOffline();
+		if(Const.DEBUG)
+			my_ann.PrintWeightMapping();
+		my_ann.TrainingOffline(5000);
 		
-		/*DataGenBinary binary = new DataGenBinary(2, 4);
-		binary.CustomDataSet();
-		binary.PrintDataSet();*/
-		System.out.println("asda");
+		Random rand = new Random();
+		int r_max = 1;
+		int r_min = -1;
+		
+
+		//System.out.println(rand.nextDouble() * (r_max - r_min) + r_min);
 	}
 	
 	//from 0 to 1 ----- from -1 to 1 do hyperbolic tan
