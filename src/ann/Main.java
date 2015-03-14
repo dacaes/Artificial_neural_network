@@ -18,7 +18,7 @@ public class Main
 		//System.out.println(sigmoid(0.80133));
 		if(Const.DEBUG)
 			my_ann.PrintWeightMapping();
-		my_ann.TrainingOffline(5000);
+		my_ann.TrainingOffline(10000);
 		
 		Random rand = new Random();
 		int r_max = 1;
@@ -28,10 +28,7 @@ public class Main
 		//System.out.println(rand.nextDouble() * (r_max - r_min) + r_min);
 	}
 	
-	//from 0 to 1 ----- from -1 to 1 do hyperbolic tan
-	public static double sigmoid(double x) {
-	    return (1/( 1 + Math.pow(Math.E,(-1*x))));
-	}
+	
 	
 	private static ArrayList<Byte> SetGenotype()
 	{

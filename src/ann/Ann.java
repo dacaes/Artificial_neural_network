@@ -139,35 +139,45 @@ public class Ann
 		
 		for(int i = 0 ; i < training_iterations ; i++)
 		{
+			System.out.println("____________________________ITERATION___"  + i + " of "+ training_iterations);
+			
+			if(Const.DEBUG)
+				PrintWeights();
+			
 			//deltas
 			i_o_deltas = new double[i_size][o_size];		//input -> output weight
 			h_i_deltas = new double[h_size][i_size];		//input -> hidden weight
 			h_o_deltas = new double[h_size][o_size];		//hidden -> output weight
 			
-			boolean stop_condition = true;
-			
+			double error = 0;
 			for (int j = 0, max = dataset.length; j < max ; j++)
-			{		
+			{	
 				FeedForward(dataset,j);
 				BackPropagation();
 				
-				stop_condition = true;
 				for (int k = 0, max2 = o_neurons_errors.length; k < max2 ; k++)
 				{
-					if(Math.abs(o_neurons_errors[k]) > Const.FITNESS)
-					{
-						stop_condition = false;
-						break;
-					}
+					error += Math.abs(o_neurons_errors[k]);
 				}				
 				DeltaWeights();
+				if(Const.DEBUG)
+					PrintDeltas();
+				System.out.println("__________________________________________________________HIDDEN___" + h_neurons[0]);
+				System.out.println("__________________________________________________________NEURON___" + o_neurons[0]);
+				System.out.println("");
 			}
-			if(stop_condition)
+			
+			System.out.println("________________________________________________________GLOBAL_ERROR___" + error);
+			System.out.println("\n");
+			
+			if(error < Const.FITNESS)
 			{
 				System.out.println("VICTORYYYYYYYY");
+				break;
 			}
 			WeightsCorrection();
 		}
+		System.out.println("END");
 	}
 
 	private void WeightsGen()
@@ -235,6 +245,8 @@ public class Ann
 			
 			//tanh
 			h_neurons[i] = Math.tanh(h_neurons[i]);
+			//sigmoid
+			//h_neurons[i] = Sigmoid(h_neurons[i]);
 		}
 		
 		//real output of the output neurons
@@ -259,6 +271,14 @@ public class Ann
 			
 			//tanh
 			o_neurons[i] = Math.tanh(o_neurons[i]);
+			//sigmoid
+			//o_neurons[i] = Sigmoid(o_neurons[i]);
+/*
+			if(o_neurons[i] < 0)
+				o_neurons[i] = 0;
+			else if (o_neurons[i] > 1)
+				o_neurons[i] = 1;
+				*/
 		}
 		if(Const.DEBUG)
 			PrintNeuronsValues(dataset_iteration);
@@ -307,7 +327,8 @@ public class Ann
 		{
 			for(int j = 0, max2 = i_o_deltas[0].length ; j < max2 ; j++)
 			{
-				i_o_deltas[i][j] += learn_factor * o_neurons_errors[j] *  i_neurons[i];
+				if(i_o_weights_mapping[i][j] == 1)
+					i_o_deltas[i][j] += learn_factor * o_neurons_errors[j] *  i_neurons[i];
 			}
 		}
 		
@@ -316,7 +337,8 @@ public class Ann
 		{
 			for(int j = 0, max2 = h_o_deltas[0].length ; j < max2 ; j++)
 			{
-				h_o_deltas[i][j] += learn_factor * o_neurons_errors[j] *  h_neurons[i];
+				if(h_o_weights_mapping[i][j] == 1)
+					h_o_deltas[i][j] += learn_factor * o_neurons_errors[j] *  h_neurons[i];
 			}
 		}
 		
@@ -325,7 +347,8 @@ public class Ann
 		{
 			for(int j = 0, max2 = h_i_deltas[0].length ; j < max2 ; j++)
 			{
-				h_i_deltas[i][j] += learn_factor * h_neurons_errors[i] *  i_neurons[j];
+				if(h_i_weights_mapping[i][j] == 1)
+					h_i_deltas[i][j] += learn_factor * h_neurons_errors[i] *  i_neurons[j];
 			}
 		}
 	}
@@ -470,5 +493,108 @@ public class Ann
 			}
 		}
 		System.out.print("#############\n");
+	}
+	
+	public void PrintWeights()
+	{
+		System.out.println("###_WEIGHTS_###\n");
+		System.out.println("IO_WEIGHTS: ");
+		for(int i = 0, max = i_o_weights.length; i < max ; i++ )
+		{
+			for(int j = 0, max2 = i_o_weights[0].length; j < max2 ; j++ )
+			{
+				System.out.print("I[" + i + "] -> O[" + j + "]:__ ");
+				System.out.print(i_o_weights[i][j]);
+				if(j + 1 < max2)
+					System.out.print("\n");
+				else
+					System.out.print("\n\n");
+			}
+		}
+		System.out.print("\n\n");
+		
+		System.out.println("HI_WEIGHTS: ");
+		for(int i = 0, max = h_i_weights.length; i < max ; i++ )
+		{
+			for(int j = 0, max2 = h_i_weights[i].length; j < max2 ; j++ )
+			{
+				System.out.print("H[" + i + "] -> I[" + j + "]:__ ");
+				System.out.print(h_i_weights[i][j]);
+				if(j + 1 < max2)
+					System.out.print("\n");
+				else
+					System.out.print("\n\n");
+			}
+		}
+		System.out.print("\n\n");
+		
+		System.out.println("HO_WEIGHTS: ");
+		for(int i = 0, max = h_o_weights.length; i < max ; i++ )
+		{
+			for(int j = 0, max2 = h_o_weights[i].length; j < max2 ; j++ )
+			{
+				System.out.print("H[" + i + "] -> O[" + j + "]:__ ");
+				System.out.print(h_o_weights[i][j]);
+				if(j + 1 < max2)
+					System.out.print("\n");
+				else
+					System.out.print("\n\n");
+			}
+		}
+		System.out.print("#############\n");
+	}
+	
+	public void PrintDeltas()
+	{
+		System.out.println("###_DELTAS_###\n");
+		System.out.println("IO_DELTAS: ");
+		for(int i = 0, max = i_o_deltas.length; i < max ; i++ )
+		{
+			for(int j = 0, max2 = i_o_deltas[0].length; j < max2 ; j++ )
+			{
+				System.out.print("I[" + i + "] -> O[" + j + "]:__ ");
+				System.out.print(i_o_deltas[i][j]);
+				if(j + 1 < max2)
+					System.out.print("\n");
+				else
+					System.out.print("\n\n");
+			}
+		}
+		System.out.print("\n\n");
+		
+		System.out.println("HI_DELTAS: ");
+		for(int i = 0, max = h_i_deltas.length; i < max ; i++ )
+		{
+			for(int j = 0, max2 = h_i_deltas[i].length; j < max2 ; j++ )
+			{
+				System.out.print("H[" + i + "] -> I[" + j + "]:__ ");
+				System.out.print(h_i_deltas[i][j]);
+				if(j + 1 < max2)
+					System.out.print("\n");
+				else
+					System.out.print("\n\n");
+			}
+		}
+		System.out.print("\n\n");
+		
+		System.out.println("HO_DELTAS: ");
+		for(int i = 0, max = h_o_deltas.length; i < max ; i++ )
+		{
+			for(int j = 0, max2 = h_o_deltas[i].length; j < max2 ; j++ )
+			{
+				System.out.print("H[" + i + "] -> O[" + j + "]:__ ");
+				System.out.print(h_o_deltas[i][j]);
+				if(j + 1 < max2)
+					System.out.print("\n");
+				else
+					System.out.print("\n\n");
+			}
+		}
+		System.out.print("#############\n");
+	}
+	
+	//from 0 to 1 ----- from -1 to 1 do hyperbolic tan
+	public static double Sigmoid(double x) {
+	    return (1/( 1 + Math.pow(Math.E,(-1*x))));
 	}
 }
