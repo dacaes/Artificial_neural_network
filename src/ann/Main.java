@@ -18,7 +18,7 @@ public class Main
 		//System.out.println(sigmoid(0.80133));
 		if(Const.DEBUG)
 			my_ann.PrintWeightMapping();
-		my_ann.TrainingOffline(10000);
+		my_ann.TrainingOffline(5000);
 		
 		Random rand = new Random();
 		int r_max = 1;

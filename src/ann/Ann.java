@@ -28,6 +28,10 @@ public class Ann
 	double[][] 	h_i_weights;			//input -> hidden weight
 	double[][] 	h_o_weights;			//hidden -> output weight
 	
+	//arrays for bias values
+	double[] 	h_bias_weights;			//hidden bias weight
+	double[] 	o_bias_weights;			//output bias weight
+	
 	//array for storing value of hidden and output errors
 	double[] 	h_neurons_errors;		//hidden errors
 	double[] 	o_neurons_errors;		//output errors
@@ -36,7 +40,10 @@ public class Ann
 	double[][] 	i_o_deltas;				//input -> output weight
 	double[][] 	h_i_deltas;				//input -> hidden weight
 	double[][] 	h_o_deltas;				//hidden -> output weight
-			
+	
+	double[] 	h_bias_deltas;			//hidden bias deltas
+	double[] 	o_bias_deltas;			//output bias deltas
+	
 	public Ann(ArrayList<Byte> genotype, int inputs, int outputs, double learn_factor)
 	{
 		this.learn_factor = learn_factor;
@@ -49,7 +56,7 @@ public class Ann
 		//arrays for storing values of the neurons
 		i_neurons = new double[inputs];					//input
 		h_neurons = new double[hidden];					//hidden
-		o_neurons = new double[outputs];				//expected output
+		o_neurons = new double[outputs];				//output
 		
 		//mapping of weights
 		i_o_weights_mapping = new Byte[inputs][outputs];
@@ -60,6 +67,9 @@ public class Ann
 		i_o_weights = new double[inputs][outputs];		//input -> output weight
 		h_i_weights = new double[hidden][inputs];		//input -> hidden weight
 		h_o_weights = new double[hidden][outputs];		//hidden -> output weight
+		
+		h_bias_weights = new double[hidden];
+		o_bias_weights = new double[outputs];
 		
 		WeightMapping(genotype, gen_size, blocks_length, inputs, outputs);
 		//First weights
@@ -149,6 +159,9 @@ public class Ann
 			h_i_deltas = new double[h_size][i_size];		//input -> hidden weight
 			h_o_deltas = new double[h_size][o_size];		//hidden -> output weight
 			
+			h_bias_deltas = new double[h_size];
+			o_bias_deltas = new double[o_size];
+			
 			double error = 0;
 			for (int j = 0, max = dataset.length; j < max ; j++)
 			{	
@@ -157,15 +170,20 @@ public class Ann
 				
 				for (int k = 0, max2 = o_neurons_errors.length; k < max2 ; k++)
 				{
-					error += Math.abs(o_neurons_errors[k]);
+					error += Math.pow(o_neurons_errors[k],2);
+					//error += Math.pow((ExpectedValue_XOR(k) - o_neurons[k]),2);
 				}				
 				DeltaWeights();
 				if(Const.DEBUG)
 					PrintDeltas();
-				System.out.println("__________________________________________________________HIDDEN___" + h_neurons[0]);
-				System.out.println("__________________________________________________________NEURON___" + o_neurons[0]);
+				//System.out.println("__________________________________________________________HIDDEN_____" + h_neurons[0]);
+				System.out.println("________________________________________________________EXPECTED_____" + ExpectedValue_XOR(0));
+				System.out.println("____________________________________________________ERROR NEURON_____" + o_neurons_errors[0]);
+				System.out.println("__________________________________________________________NEURON_____" + o_neurons[0]);
 				System.out.println("");
 			}
+			
+			error /= dataset.length;
 			
 			System.out.println("________________________________________________________GLOBAL_ERROR___" + error);
 			System.out.println("\n");
@@ -190,6 +208,9 @@ public class Ann
 		
 		for (int i = 0; i < h_size ; i++)
 		{
+			//bias
+			h_bias_weights[i] = rand.nextDouble() * (1 - -1) + -1;
+			
 			for (int j = 0; j < i_size ; j++)
 			{
 				if(h_i_weights_mapping[i][j] == 1)
@@ -207,13 +228,16 @@ public class Ann
 			}
 		}
 		
-		for (int i = 0; i < i_size ; i++)
+		for (int i = 0; i < o_size ; i++)
 		{
-			for (int j = 0; j < o_size ; j++)
+			//bias
+			o_bias_weights[i] = rand.nextDouble() * (1 - -1) + -1;
+			
+			for (int j = 0; j < i_size ; j++)
 			{
-				if(i_o_weights_mapping[i][j] == 1)
+				if(i_o_weights_mapping[j][i] == 1)
 				{	
-					i_o_weights[i][j] = rand.nextDouble() * (1 - -1) + -1;
+					i_o_weights[j][i] = rand.nextDouble() * (1 - -1) + -1;
 				}
 			}
 		}
@@ -243,10 +267,21 @@ public class Ann
 				}
 			}
 			
+			h_neurons[i] += h_bias_weights[i];
+			
+			//mytan
+			//o_neurons[i] = HyperbolicTan(o_neurons[i]);
 			//tanh
-			h_neurons[i] = Math.tanh(h_neurons[i]);
+			//h_neurons[i] = Math.tanh(h_neurons[i]);
 			//sigmoid
-			//h_neurons[i] = Sigmoid(h_neurons[i]);
+			h_neurons[i] = Sigmoid(h_neurons[i]);
+			//jump
+			/*
+			if(h_neurons[i] < 0.5)
+				h_neurons[i] = 0;
+			else if (h_neurons[i] > 0.5)
+				h_neurons[i] = 1;
+				*/
 		}
 		
 		//real output of the output neurons
@@ -269,16 +304,22 @@ public class Ann
 				}
 			}
 			
+			o_neurons[i] += o_bias_weights[i];
+			
+			//mytan
+			//o_neurons[i] = HyperbolicTan(o_neurons[i]);
 			//tanh
-			o_neurons[i] = Math.tanh(o_neurons[i]);
+			//o_neurons[i] = Math.tanh(o_neurons[i]);
 			//sigmoid
-			//o_neurons[i] = Sigmoid(o_neurons[i]);
-/*
-			if(o_neurons[i] < 0)
+			o_neurons[i] = Sigmoid(o_neurons[i]);
+			//jump
+			/*
+			if(o_neurons[i] < 0.5)
 				o_neurons[i] = 0;
-			else if (o_neurons[i] > 1)
+			else if (o_neurons[i] > 0.5)
 				o_neurons[i] = 1;
-				*/
+			*/
+				
 		}
 		if(Const.DEBUG)
 			PrintNeuronsValues(dataset_iteration);
@@ -322,20 +363,32 @@ public class Ann
 	
 	private void DeltaWeights()
 	{
+		int i_size = i_neurons.length;
+		int h_size = h_neurons.length;
+		int o_size = o_neurons.length;
+		
+		Random rand = new Random();
+		
 		//deltas of i_o
-		for(int i = 0, max = i_o_deltas.length ; i < max ; i++)
+		for(int i = 0; i < o_size ; i++)
 		{
-			for(int j = 0, max2 = i_o_deltas[0].length ; j < max2 ; j++)
+			//bias
+			o_bias_deltas[i] += learn_factor * o_neurons_errors[i];
+			
+			for(int j = 0; j < i_size ; j++)
 			{
-				if(i_o_weights_mapping[i][j] == 1)
-					i_o_deltas[i][j] += learn_factor * o_neurons_errors[j] *  i_neurons[i];
+				if(i_o_weights_mapping[j][i] == 1)
+					i_o_deltas[j][i] += learn_factor * o_neurons_errors[i] *  i_neurons[j];
 			}
 		}
 		
 		//deltas of h_o
-		for(int i = 0, max = h_o_deltas.length ; i < max ; i++)
+		for(int i = 0; i < h_size ; i++)
 		{
-			for(int j = 0, max2 = h_o_deltas[0].length ; j < max2 ; j++)
+			//bias
+			h_bias_deltas[i] += learn_factor * h_neurons_errors[i];
+			
+			for(int j = 0; j < o_size ; j++)
 			{
 				if(h_o_weights_mapping[i][j] == 1)
 					h_o_deltas[i][j] += learn_factor * o_neurons_errors[j] *  h_neurons[i];
@@ -343,9 +396,9 @@ public class Ann
 		}
 		
 		//deltas of i_h
-		for(int i = 0, max = h_i_deltas.length ; i < max ; i++)
+		for(int i = 0; i < h_size ; i++)
 		{
-			for(int j = 0, max2 = h_i_deltas[0].length ; j < max2 ; j++)
+			for(int j = 0; j < i_size ; j++)
 			{
 				if(h_i_weights_mapping[i][j] == 1)
 					h_i_deltas[i][j] += learn_factor * h_neurons_errors[i] *  i_neurons[j];
@@ -355,30 +408,43 @@ public class Ann
 	
 	private void WeightsCorrection()
 	{
+		int i_size = i_neurons.length;
+		int h_size = h_neurons.length;
+		int o_size = o_neurons.length;
+		
 		//weights of i_o
-		for(int i = 0, max = i_o_deltas.length ; i < max ; i++)
+		for(int i = 0; i < i_size ; i++)
 		{
-			for(int j = 0, max2 = i_o_deltas[0].length ; j < max2 ; j++)
+			for(int j = 0; j < o_size ; j++)
 			{
-				i_o_weights[i][j] += i_o_deltas[i][j];
+				if(i_o_weights_mapping[i][j] == 1)
+					i_o_weights[i][j] += i_o_deltas[i][j];
 			}
 		}
 		
 		//weights of h_o
-		for(int i = 0, max = h_o_deltas.length ; i < max ; i++)
+		for(int i = 0; i < o_size ; i++)
 		{
-			for(int j = 0, max2 = h_o_deltas[0].length ; j < max2 ; j++)
+			//bias
+			o_bias_deltas[i] += o_bias_deltas[i];
+			
+			for(int j = 0; j < h_size ; j++)
 			{
-				h_o_weights[i][j] += h_o_deltas[i][j];
+				if(h_o_weights_mapping[j][i] == 1)
+					h_o_weights[j][i] += h_o_deltas[j][i];
 			}
 		}
 		
 		//weights of i_h
-		for(int i = 0, max = h_i_deltas.length ; i < max ; i++)
+		for(int i = 0; i < h_size ; i++)
 		{
-			for(int j = 0, max2 = h_i_deltas[0].length ; j < max2 ; j++)
+			//bias
+			h_bias_deltas[i] += h_bias_deltas[i];
+			
+			for(int j = 0; j < i_size ; j++)
 			{
-				h_i_weights[i][j] += h_i_deltas[i][j];
+				if(h_i_weights_mapping[i][j] == 1)
+					h_i_weights[i][j] += h_i_deltas[i][j];
 			}
 		}
 	}
@@ -404,7 +470,7 @@ public class Ann
 			}
 			default:
 				//?????????
-				return 0;
+				return 999999;
 		}
 	}
 
@@ -593,8 +659,13 @@ public class Ann
 		System.out.print("#############\n");
 	}
 	
-	//from 0 to 1 ----- from -1 to 1 do hyperbolic tan
+	//from 0 to 1
 	public static double Sigmoid(double x) {
 	    return (1/( 1 + Math.pow(Math.E,(-1*x))));
 	}
+	
+	//from -1 to 1
+		public static double HyperbolicTan(double x) {
+		    return ((1 - Math.pow(Math.E,(-2*x))) / (1 + Math.pow(Math.E,(-2*x))));
+		}
 }
