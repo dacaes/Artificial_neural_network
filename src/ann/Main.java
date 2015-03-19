@@ -3,6 +3,8 @@ package ann;
 import java.util.ArrayList;
 import java.util.Random;
 
+import ann.Const.Activation;
+
 /**
  * Main class. The executor.
  * @author Daniel Castaño Estrella
@@ -18,12 +20,11 @@ public class Main
 		//System.out.println(sigmoid(0.80133));
 		if(Const.DEBUG)
 			my_ann.PrintWeightMapping();
-		my_ann.TrainingOffline(5000);
+		my_ann.TrainingOffline(50000);
 		
 		Random rand = new Random();
 		int r_max = 1;
 		int r_min = -1;
-		
 
 		//System.out.println(rand.nextDouble() * (r_max - r_min) + r_min);
 	}

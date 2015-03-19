@@ -3,6 +3,7 @@ package ann;
 import java.util.ArrayList;
 import java.util.Random;
 
+import ann.Const.Activation;
 import dataset.DataGen;
 
 /**
@@ -269,19 +270,27 @@ public class Ann
 			
 			h_neurons[i] += h_bias_weights[i];
 			
-			//mytan
-			//o_neurons[i] = HyperbolicTan(o_neurons[i]);
-			//tanh
-			//h_neurons[i] = Math.tanh(h_neurons[i]);
-			//sigmoid
-			h_neurons[i] = Sigmoid(h_neurons[i]);
-			//jump
-			/*
-			if(h_neurons[i] < 0.5)
-				h_neurons[i] = 0;
-			else if (h_neurons[i] > 0.5)
-				h_neurons[i] = 1;
-				*/
+			//Activation function
+			if(Const.AFUNC == Activation.TANH)
+			{
+				//mytan
+				h_neurons[i] = HyperbolicTan(h_neurons[i]);
+				//tanh
+				//h_neurons[i] = Math.tanh(h_neurons[i]);
+			}
+			else if(Const.AFUNC == Activation.SIGMOID)
+			{
+				//sigmoid
+				h_neurons[i] = Sigmoid(h_neurons[i]);
+			}
+			else if(Const.AFUNC == Activation.UMBRAL)
+			{
+				//jump
+				if(h_neurons[i] < 0.5)
+					h_neurons[i] = 0;
+				else if (h_neurons[i] >= 0.5)
+					h_neurons[i] = 1;
+			}
 		}
 		
 		//real output of the output neurons
@@ -306,19 +315,28 @@ public class Ann
 			
 			o_neurons[i] += o_bias_weights[i];
 			
-			//mytan
-			//o_neurons[i] = HyperbolicTan(o_neurons[i]);
-			//tanh
-			//o_neurons[i] = Math.tanh(o_neurons[i]);
-			//sigmoid
-			o_neurons[i] = Sigmoid(o_neurons[i]);
-			//jump
-			/*
-			if(o_neurons[i] < 0.5)
-				o_neurons[i] = 0;
-			else if (o_neurons[i] > 0.5)
-				o_neurons[i] = 1;
-			*/
+			//Activation function
+			if(Const.AFUNC == Activation.TANH)
+			{
+				//mytan
+				o_neurons[i] = HyperbolicTan(o_neurons[i]);
+				//tanh
+				//o_neurons[i] = Math.tanh(o_neurons[i]);
+			}
+			else if(Const.AFUNC == Activation.SIGMOID)
+			{
+				//sigmoid
+				o_neurons[i] = Sigmoid(o_neurons[i]);
+			}
+			else if(Const.AFUNC == Activation.UMBRAL)
+			{
+				//jump
+				if(o_neurons[i] < 0.5)
+					o_neurons[i] = 0;
+				else if (o_neurons[i] >= 0.5)
+					o_neurons[i] = 1;
+			}
+			
 				
 		}
 		if(Const.DEBUG)
@@ -333,8 +351,14 @@ public class Ann
 		
 		for (int i = 0; i < o_size ; i++)
 		{
-			o_neurons_errors[i] = o_neurons[i] * (1 - o_neurons[i]) * (ExpectedValue_XOR(i) - o_neurons[i]);
-			//if(Const.DEBUG)
+			if(Const.AFUNC == Activation.TANH)
+			{}
+			else if(Const.AFUNC == Activation.SIGMOID)
+				o_neurons_errors[i] = o_neurons[i] * (1 - o_neurons[i]) * (ExpectedValue_XOR(i) - o_neurons[i]);
+			else if(Const.AFUNC == Activation.UMBRAL)
+				o_neurons_errors[i] = 1 * (ExpectedValue_XOR(i) - o_neurons[i]);
+			
+			if(Const.DEBUG)
 				System.out.println("output error_ " + i + "____" + o_neurons_errors[i]);
 		}
 		
@@ -355,7 +379,13 @@ public class Ann
 				}
 			}
 			
-			h_neurons_errors[i] = h_neurons[i] * (1 - h_neurons[i]) * sum_Eo_Who;
+			if(Const.AFUNC == Activation.TANH)
+			{}
+			else if(Const.AFUNC == Activation.SIGMOID)
+				h_neurons_errors[i] = h_neurons[i] * (1 - h_neurons[i]) * sum_Eo_Who;
+			else if(Const.AFUNC == Activation.UMBRAL)
+				h_neurons_errors[i] = 1 * sum_Eo_Who;
+			
 			if(Const.DEBUG)
 				System.out.println("hidden error_ " + i + "____" + h_neurons_errors[i]);
 		}
@@ -366,8 +396,6 @@ public class Ann
 		int i_size = i_neurons.length;
 		int h_size = h_neurons.length;
 		int o_size = o_neurons.length;
-		
-		Random rand = new Random();
 		
 		//deltas of i_o
 		for(int i = 0; i < o_size ; i++)
