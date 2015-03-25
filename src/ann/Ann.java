@@ -13,70 +13,80 @@ import dataset.DataGen;
  */
 public class Ann
 {
+	//LEARN FACTOR
 	public double learn_factor;
-	//mapping of the connections
+	
+	//MAPPING
 	Byte[][] 	i_o_weights_mapping;	//input -> output mapping
 	Byte[][] 	h_i_weights_mapping;	//input -> hidden mapping
 	Byte[][]	h_o_weights_mapping;	//hidden -> output mapping
 	
-	//arrays for storing values of the neurons
-	double[] 	i_neurons;				//input values
-	double[] 	h_neurons;				//hidden values
-	double[] 	o_neurons;				//output values
-	
-	//arrays for storing values of the weights
+	//WEIGHTS
 	double[][] 	i_o_weights;			//input -> output weight
 	double[][] 	h_i_weights;			//input -> hidden weight
 	double[][] 	h_o_weights;			//hidden -> output weight
 	
-	//arrays for bias values
 	double[] 	h_bias_weights;			//hidden bias weight
 	double[] 	o_bias_weights;			//output bias weight
 	
-	//array for storing value of hidden and output errors
+	//VALUES
+	double[] 	i_neurons;				//input values
+	double[] 	h_neurons;				//hidden values
+	double[] 	o_neurons;				//output values
+	
+	//ERRORS
 	double[] 	h_neurons_errors;		//hidden errors
 	double[] 	o_neurons_errors;		//output errors
 	
-	//array for storing deltas of weights
-	double[][] 	i_o_deltas;				//input -> output weight
-	double[][] 	h_i_deltas;				//input -> hidden weight
-	double[][] 	h_o_deltas;				//hidden -> output weight
+	//DELTAS
+	double[][] 	i_o_deltas;				//input -> output deltas
+	double[][] 	h_i_deltas;				//input -> hidden deltas
+	double[][] 	h_o_deltas;				//hidden -> output deltas
 	
 	double[] 	h_bias_deltas;			//hidden bias deltas
 	double[] 	o_bias_deltas;			//output bias deltas
 	
 	public Ann(ArrayList<Byte> genotype, int inputs, int outputs, double learn_factor)
 	{
-		this.learn_factor = learn_factor;
-		final int gen_size = genotype.size();
+		this.learn_factor = learn_factor;					//store the learn factor
+		final int gen_size = genotype.size();				//store the genontype size
 		
-		//length of the blocks of the genotype
-		final int blocks_length = inputs*outputs;
-		final int hidden = gen_size / blocks_length - 1;		// -1 for the i_o
+		final int blocks_length = inputs*outputs;			//length of the blocks of the genotype
+		final int hidden = gen_size / blocks_length - 1;	// -1 because of the i_o
 		
 		//arrays for storing values of the neurons
-		i_neurons = new double[inputs];					//input
-		h_neurons = new double[hidden];					//hidden
-		o_neurons = new double[outputs];				//output
+		i_neurons = new double[inputs];						//input value
+		h_neurons = new double[hidden];						//hidden value
+		o_neurons = new double[outputs];					//output value
 		
-		//mapping of weights
-		i_o_weights_mapping = new Byte[inputs][outputs];
-		h_i_weights_mapping = new Byte[hidden][inputs];
-		h_o_weights_mapping = new Byte[hidden][outputs];
+		//arrays for storing mapping of weights
+		i_o_weights_mapping = new Byte[inputs][outputs];	//input -> output mapping
+		h_i_weights_mapping = new Byte[hidden][inputs];		//hidden -> input mapping
+		h_o_weights_mapping = new Byte[hidden][outputs];	//hidden -> output mapping
 		
 		//arrays for storing values of the weights
-		i_o_weights = new double[inputs][outputs];		//input -> output weight
-		h_i_weights = new double[hidden][inputs];		//input -> hidden weight
-		h_o_weights = new double[hidden][outputs];		//hidden -> output weight
+		i_o_weights = new double[inputs][outputs];			//input -> output weight
+		h_i_weights = new double[hidden][inputs];			//hidden -> input weight
+		h_o_weights = new double[hidden][outputs];			//hidden -> output weight
 		
-		h_bias_weights = new double[hidden];
-		o_bias_weights = new double[outputs];
+		h_bias_weights = new double[hidden];				//hidden bias weight
+		o_bias_weights = new double[outputs];				//output bias weight
 		
+		//Mapping of the connections of the ann.
 		WeightMapping(genotype, gen_size, blocks_length, inputs, outputs);
-		//First weights
+		
+		//first random weights
 		WeightsGen();
 	}
 	
+	/**
+	 * This method do the mapping of the connections of the ann.
+	 * @param genotype
+	 * @param gen_size
+	 * @param blocks_length
+	 * @param inputs
+	 * @param outputs
+	 */
 	private void WeightMapping(ArrayList<Byte> genotype, final int gen_size, final int blocks_length, final int inputs, final int outputs)
 	{
 		for (int i = 0; i < gen_size; i++)
@@ -129,76 +139,12 @@ public class Ann
 				if(h_o_weights_mapping[hidden_neuron][output_index] == null || h_o_weights_mapping[hidden_neuron][output_index] == 0)
 					h_o_weights_mapping[hidden_neuron][output_index] = val;
 			}
-		}		
+		}
+		
+		if(Const.DEBUG)
+			PrintWeightMapping();
 	}
 	
-	public void TrainingOffline(int training_iterations)
-	{
-		int i_size = i_neurons.length;
-		int h_size = h_neurons.length;
-		int o_size = o_neurons.length;
-		
-		int sets = 4;
-		int min = 0;
-		boolean binary = true;
-		
-		DataGen datagen = new DataGen(i_size, sets, min, binary);
-		if(Const.DEBUG)
-			datagen.PrintDataSet();
-		
-		double[][] dataset = datagen.GetDataset();
-		
-		for(int i = 0 ; i < training_iterations ; i++)
-		{
-			System.out.println("____________________________ITERATION___"  + i + " of "+ training_iterations);
-			
-			if(Const.DEBUG)
-				PrintWeights();
-			
-			//deltas
-			i_o_deltas = new double[i_size][o_size];		//input -> output weight
-			h_i_deltas = new double[h_size][i_size];		//input -> hidden weight
-			h_o_deltas = new double[h_size][o_size];		//hidden -> output weight
-			
-			h_bias_deltas = new double[h_size];
-			o_bias_deltas = new double[o_size];
-			
-			double error = 0;
-			for (int j = 0, max = dataset.length; j < max ; j++)
-			{	
-				FeedForward(dataset,j);
-				BackPropagation();
-				
-				for (int k = 0, max2 = o_neurons_errors.length; k < max2 ; k++)
-				{
-					error += Math.pow(o_neurons_errors[k],2);
-					//error += Math.pow((ExpectedValue_XOR(k) - o_neurons[k]),2);
-				}				
-				DeltaWeights();
-				if(Const.DEBUG)
-					PrintDeltas();
-				//System.out.println("__________________________________________________________HIDDEN_____" + h_neurons[0]);
-				System.out.println("________________________________________________________EXPECTED_____" + ExpectedValue_XOR(0));
-				System.out.println("____________________________________________________ERROR NEURON_____" + o_neurons_errors[0]);
-				System.out.println("__________________________________________________________NEURON_____" + o_neurons[0]);
-				System.out.println("");
-			}
-			
-			error /= dataset.length;
-			
-			System.out.println("________________________________________________________GLOBAL_ERROR___" + error);
-			System.out.println("\n");
-			
-			if(error < Const.FITNESS)
-			{
-				System.out.println("VICTORYYYYYYYY");
-				break;
-			}
-			WeightsCorrection();
-		}
-		System.out.println("END");
-	}
-
 	private void WeightsGen()
 	{
 		int i_size = i_neurons.length;
@@ -242,6 +188,75 @@ public class Ann
 				}
 			}
 		}
+		if(Const.DEBUG)
+			System.out.println("First random weights calculated.");
+	}
+	
+	public void TrainingOffline(int training_iterations)
+	{
+		int i_size = i_neurons.length;
+		int h_size = h_neurons.length;
+		int o_size = o_neurons.length;
+		
+		int sets = 4;
+		int min = 0;
+		boolean binary = true;
+		
+		DataGen datagen = new DataGen(i_size, sets, min, binary);
+		if(Const.DEBUG)
+			datagen.PrintDataSet();
+		
+		double[][] dataset = datagen.GetDataset();
+		
+		for(int i = 0 ; i < training_iterations ; i++)
+		{
+			System.out.println("____________________________ITERATION___"  + i + " of "+ training_iterations);
+			
+			if(Const.DEBUG)
+				PrintWeights();
+			
+			//RESET DELTAS
+			i_o_deltas = new double[i_size][o_size];		//input -> output weight
+			h_i_deltas = new double[h_size][i_size];		//input -> hidden weight
+			h_o_deltas = new double[h_size][o_size];		//hidden -> output weight
+			
+			h_bias_deltas = new double[h_size];
+			o_bias_deltas = new double[o_size];
+			
+			double error = 0;
+			for (int j = 0, max = dataset.length; j < max ; j++)
+			{	
+				FeedForward(dataset,j);
+				BackPropagation();
+				
+				for (int k = 0, max2 = o_neurons.length; k < max2 ; k++)
+				{
+					error += Math.pow( ExpectedValue_XOR(0) - o_neurons[k],2);
+					//error +=o_neurons_errors[k];
+				}				
+				DeltaWeights();
+				if(Const.DEBUG)
+					PrintDeltas();
+				//System.out.println("__________________________________________________________HIDDEN_____" + h_neurons[0]);
+				System.out.println("________________________________________________________EXPECTED_____" + ExpectedValue_XOR(0));
+				System.out.println("____________________________________________________ERROR NEURON_____" + o_neurons_errors[0]);
+				System.out.println("__________________________________________________________NEURON_____" + o_neurons[0]);
+				System.out.println("");
+			}
+			//Math.pow(error,2);
+			error /= dataset.length;
+			
+			System.out.println("________________________________________________________GLOBAL_ERROR___" + error);
+			System.out.println("\n");
+			
+			if(error < Const.FITNESS)
+			{
+				System.out.println("VICTORYYYYYYYY");
+				break;
+			}
+			WeightsCorrection();
+		}
+		System.out.println("END");
 	}
 	
 	private void FeedForward(double[][] dataset, int dataset_iteration)
@@ -622,6 +637,15 @@ public class Ann
 		}
 		System.out.print("\n\n");
 		
+		System.out.println("H_BIAS_WEIGHTS: ");
+		for(int i = 0, max = h_bias_weights.length; i < max ; i++ )
+		{
+			System.out.print("H_BIAS[" + i + "]:__ ");
+			System.out.print(h_bias_weights[i]);
+				System.out.print("\n");
+		}
+		System.out.print("\n\n");
+		
 		System.out.println("HO_WEIGHTS: ");
 		for(int i = 0, max = h_o_weights.length; i < max ; i++ )
 		{
@@ -635,6 +659,16 @@ public class Ann
 					System.out.print("\n\n");
 			}
 		}
+		
+		System.out.println("O_BIAS_WEIGHTS: ");
+		for(int i = 0, max = o_bias_weights.length; i < max ; i++ )
+		{
+			System.out.print("O_BIAS[" + i + "]:__ ");
+			System.out.print(o_bias_weights[i]);
+				System.out.print("\n");
+		}
+		System.out.print("\n\n");
+		
 		System.out.print("#############\n");
 	}
 	
@@ -671,6 +705,15 @@ public class Ann
 		}
 		System.out.print("\n\n");
 		
+		System.out.println("H_BIAS_DELTAS: ");
+		for(int i = 0, max = h_bias_deltas.length; i < max ; i++ )
+		{
+			System.out.print("H_BIAS[" + i + "]:__ ");
+			System.out.print(h_bias_deltas[i]);
+				System.out.print("\n");
+		}
+		System.out.print("\n\n");
+		
 		System.out.println("HO_DELTAS: ");
 		for(int i = 0, max = h_o_deltas.length; i < max ; i++ )
 		{
@@ -684,6 +727,16 @@ public class Ann
 					System.out.print("\n\n");
 			}
 		}
+		
+		System.out.println("O_BIAS_DELTAS: ");
+		for(int i = 0, max = o_bias_deltas.length; i < max ; i++ )
+		{
+			System.out.print("O_BIAS[" + i + "]:__ ");
+			System.out.print(o_bias_deltas[i]);
+				System.out.print("\n");
+		}
+		System.out.print("\n\n");
+		
 		System.out.print("#############\n");
 	}
 	
