@@ -191,7 +191,7 @@ public class Ann
 				}
 			}
 		}
-		
+		/*
 		//ñapa para debuguear
 		weights_I_O[0][0] = 0.0193;
 		weights_I_O[1][0] = 0.3838;
@@ -202,7 +202,7 @@ public class Ann
 		
 		weights_H_O[0][0] = -0.8003;
 		weights_O_BIAS[0] = 0.0914;
-		
+		*/
 		if(Const.DEBUG)
 			System.out.println("First random weights calculated.");
 	}
@@ -479,7 +479,7 @@ public class Ann
 		for(int i = 0; i < length_O ; i++)
 		{
 			//bias
-			deltas_O_BIAS[i] += deltas_O_BIAS[i];
+			weights_O_BIAS[i] += deltas_O_BIAS[i];
 			
 			for(int j = 0; j < length_H ; j++)
 			{
@@ -492,7 +492,7 @@ public class Ann
 		for(int i = 0; i < length_H ; i++)
 		{
 			//bias
-			deltas_H_BIAS[i] += deltas_H_BIAS[i];
+			weights_H_BIAS[i] += deltas_H_BIAS[i];
 			
 			for(int j = 0; j < length_I ; j++)
 			{
