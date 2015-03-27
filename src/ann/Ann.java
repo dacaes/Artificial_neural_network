@@ -427,7 +427,7 @@ public class Ann
 		for(int i = 0; i < length_O ; i++)
 		{
 			//bias
-			deltas_O_BIAS[i] += learn_factor * errors_O[i] * weights_O_BIAS[i];
+			deltas_O_BIAS[i] += learn_factor * errors_O[i];
 			
 			for(int j = 0; j < length_I ; j++)
 			{
@@ -440,7 +440,7 @@ public class Ann
 		for(int i = 0; i < length_H ; i++)
 		{
 			//bias
-			deltas_H_BIAS[i] += learn_factor * errors_H[i] * weights_H_BIAS[i];
+			deltas_H_BIAS[i] += learn_factor * errors_H[i];
 			
 			for(int j = 0; j < length_O ; j++)
 			{
