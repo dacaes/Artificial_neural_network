@@ -1,9 +1,10 @@
-package ann;
+package executor;
 
 import java.util.ArrayList;
 import java.util.Random;
 
-import ann.Const.Activation;
+import ann.Ann;
+import ann.Const;
 
 /**
  * Main class. The executor.
@@ -17,8 +18,12 @@ public class Main
 		ArrayList<Byte> genotype_xor = SetGenotype();	
 		Ann my_ann = new Ann(genotype_xor, Const.INPUTS, Const.OUPUTS, Const.LEARN_FACTOR);	//genotype, inputs and ouputs
 		my_ann.TrainingOffline(Const.TRAININGS);
-		
-		
+		/*
+		double htan = my_ann.HyperbolicTan(0.36);
+		double value = my_ann.ArcHyperbolicTan(htan);
+		System.out.println(htan);
+		System.out.println(value);
+		*/
 		/*
 		//System.out.println(sigmoid(0.80133));
 		
