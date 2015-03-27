@@ -265,14 +265,17 @@ public class Ann
 			if(error < Const.FITNESS)
 			{
 				System.out.println("VICTORYYYYYYYY");
+				System.out.println("FINISHED IN ITERATION:__  " + i);
+				
+				FeedForward(dataset,0);
+				FeedForward(dataset,1);
+				FeedForward(dataset,2);
+				FeedForward(dataset,3);
 				break;
 			}
 			WeightsCorrection();
 		}
-		FeedForward(dataset,0);
-		FeedForward(dataset,1);
-		FeedForward(dataset,2);
-		FeedForward(dataset,3);
+		
 		System.out.println("END");
 	}
 	
@@ -383,7 +386,7 @@ public class Ann
 		for (int i = 0; i < length_O ; i++)
 		{
 			if(Const.AFUNC == Activation.TANH)
-				errors_O[i] = 1 - Math.pow(neurons_O[i], 2) * (ExpectedValue_XOR(i) - neurons_O[i]);
+				errors_O[i] = (1 - Math.pow(neurons_O[i], 2)) * (ExpectedValue_XOR(i) - neurons_O[i]);
 			else if(Const.AFUNC == Activation.SIGMOID)
 				errors_O[i] = neurons_O[i] * (1 - neurons_O[i]) * (ExpectedValue_XOR(i) - neurons_O[i]);
 			else if(Const.AFUNC == Activation.UMBRAL)
@@ -410,14 +413,14 @@ public class Ann
 			}
 			
 			if(Const.AFUNC == Activation.TANH)
-				errors_H[i] = 1 - Math.pow(neurons_H[i], 2) * (ExpectedValue_XOR(i) - neurons_H[i]);
+				errors_H[i] = (1 - Math.pow(neurons_H[i], 2)) * sum_Eo_Who;
 			else if(Const.AFUNC == Activation.SIGMOID)
 				errors_H[i] = neurons_H[i] * (1 - neurons_H[i]) * sum_Eo_Who;
 			else if(Const.AFUNC == Activation.UMBRAL)
 				errors_H[i] = 1 * sum_Eo_Who;
 			
 			if(Const.DEBUG)
-				System.out.println("length_H error_ " + i + "____" + errors_H[i]);
+				System.out.println("hidden error_ " + i + "____" + errors_H[i]);
 		}
 	}
 	
