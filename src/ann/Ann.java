@@ -191,6 +191,18 @@ public class Ann
 				}
 			}
 		}
+		
+		//ñapa para debuguear
+		weights_I_O[0][0] = 0.0193;
+		weights_I_O[1][0] = 0.3838;
+		
+		weights_H_I[0][0] = -0.9561;
+		weights_H_I[0][1] = -0.3124;
+		weights_H_BIAS[0] = -0.3428;
+		
+		weights_H_O[0][0] = -0.8003;
+		weights_O_BIAS[0] = 0.0914;
+		
 		if(Const.DEBUG)
 			System.out.println("First random weights calculated.");
 	}
@@ -213,7 +225,7 @@ public class Ann
 			
 			if(Const.DEBUG)
 				PrintWeights();
-			
+					
 			//RESET DELTAS
 			deltas_I_O = new double[length_I][length_O];		//input -> output weight
 			deltas_H_I = new double[length_H][length_I];		//input -> length_H weight
@@ -225,9 +237,11 @@ public class Ann
 			double error = 0;
 			for (int j = 0, max = dataset.length; j < max ; j++)
 			{	
+				
 				FeedForward(dataset,j);
 				BackPropagation();
 				DeltaWeights();
+				
 				double current_error = 0;
 				for (int k = 0; k < length_O ; k++)
 				{
@@ -236,9 +250,7 @@ public class Ann
 					//error +=errors_O[k];
 				}				
 				
-				if(Const.DEBUG)
-					PrintDeltas();
-				//System.out.println("__________________________________________________________HIDDEN_____" + neurons_H[0]);
+				//System.out.println("________________________________________________________HIDDEN_____" + neurons_H[0]);
 				System.out.println("________________________________________________________EXPECTED_____" + ExpectedValue_XOR(0));
 				System.out.println("____________________________________________________ERROR NEURON_____" + current_error);
 				System.out.println("__________________________________________________________NEURON_____" + neurons_O[0]);
@@ -266,6 +278,11 @@ public class Ann
 	
 	private void FeedForward(double[][] dataset, int dataset_iteration)
 	{	
+		//reset neurons
+		neurons_I = new double[length_I];					//input value
+		neurons_H = new double[length_H];					//length_H value
+		neurons_O = new double[length_O];					//output value
+		
 		//output of input neurons
 		for (int i = 0; i < length_I; i++)
 		{
@@ -290,9 +307,9 @@ public class Ann
 			if(Const.AFUNC == Activation.TANH)
 			{
 				//mytan
-				neurons_H[i] = HyperbolicTan(neurons_H[i]);
+				//neurons_H[i] = HyperbolicTan(neurons_H[i]);
 				//tanh
-				//neurons_H[i] = Math.tanh(neurons_H[i]);
+				neurons_H[i] = Math.tanh(neurons_H[i]);
 			}
 			else if(Const.AFUNC == Activation.SIGMOID)
 			{
@@ -335,9 +352,9 @@ public class Ann
 			if(Const.AFUNC == Activation.TANH)
 			{
 				//mytan
-				neurons_O[i] = HyperbolicTan(neurons_O[i]);
+				//neurons_O[i] = HyperbolicTan(neurons_O[i]);
 				//tanh
-				//neurons_O[i] = Math.tanh(neurons_O[i]);
+				neurons_O[i] = Math.tanh(neurons_O[i]);
 			}
 			else if(Const.AFUNC == Activation.SIGMOID)
 			{
@@ -441,6 +458,9 @@ public class Ann
 					deltas_H_I[i][j] += learn_factor * errors_H[i] *  neurons_I[j];
 			}
 		}
+		
+		if(Const.DEBUG)
+			PrintDeltas();
 	}
 	
 	private void WeightsCorrection()
@@ -480,6 +500,9 @@ public class Ann
 					weights_H_I[i][j] += deltas_H_I[i][j];
 			}
 		}
+		
+		if(Const.DEBUG)
+			System.out.println("WEIGHTS CORRECTED");
 	}
 	
 	//XOR
@@ -488,7 +511,7 @@ public class Ann
 		switch (output)
 		{
 			case 0:
-			//We don't use different expected values for different length_O because there is only one.
+			//We don't use different expected values for different OUTPUTS because there is only one.
 			if(neurons_I[0] != neurons_I[1])
 			{
 				if(Const.DEBUG)
