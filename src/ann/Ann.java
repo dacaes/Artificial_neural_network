@@ -5,6 +5,7 @@ import java.util.Random;
 
 import dataset.DataGen;
 import ann.Const.Activation;
+import ann.Const.EvalType;;
 
 /**
  * Artificial neural network
@@ -219,13 +220,36 @@ public class Ann
 		
 		double[][] dataset = datagen.GetDataset();
 		
+		double last_eval_error = 9999;
+		double eval_error = 0;
 		for(int i = 0 ; i < training_iterations ; i++)
 		{
-			System.out.println("____________________________ITERATION___"  + i + " of "+ training_iterations);
+			System.out.println("____________________________ITERATION___"  + (i + 1) + " of "+ training_iterations);
 			
 			if(Const.DEBUG)
 				PrintWeights();
+			
+			if(Const.ETYPE == EvalType.EARLY_STOP && i % Const.RANGE == 0)
+			{
+				eval_error /= Const.RANGE;
+				if(eval_error > last_eval_error)
+				{
+					System.out.println("VICTORYYYYYYYY");
+					System.out.println("FINISHED IN ITERATION:__  " + (i - 1));
 					
+					FeedForward(dataset,0);
+					FeedForward(dataset,1);
+					FeedForward(dataset,2);
+					FeedForward(dataset,3);
+					break;
+				}
+				else if (i != 0)
+				{
+					last_eval_error = eval_error;
+					eval_error = 0;
+				}
+			}
+			
 			//RESET DELTAS
 			deltas_I_O = new double[length_I][length_O];		//input -> output weight
 			deltas_H_I = new double[length_H][length_I];		//input -> length_H weight
@@ -247,22 +271,19 @@ public class Ann
 				{
 					current_error = ExpectedValue_XOR(0) - neurons_O[k];
 					error += Math.pow(current_error,2);
-					//error +=errors_O[k];
 				}				
 				
-				//System.out.println("________________________________________________________HIDDEN_____" + neurons_H[0]);
 				System.out.println("________________________________________________________EXPECTED_____" + ExpectedValue_XOR(0));
-				System.out.println("____________________________________________________ERROR NEURON_____" + current_error);
 				System.out.println("__________________________________________________________NEURON_____" + neurons_O[0]);
 				System.out.println("");
 			}
-			//Math.pow(error,2);
 			error /= dataset.length;
+			eval_error += Math.pow(error,2);
 			
 			System.out.println("________________________________________________________GLOBAL_ERROR___" + error);
 			System.out.println("\n");
 			
-			if(error < Const.FITNESS)
+			if(Const.ETYPE == EvalType.FITNESS && error < Const.FITNESS)
 			{
 				System.out.println("VICTORYYYYYYYY");
 				System.out.println("FINISHED IN ITERATION:__  " + i);
@@ -273,6 +294,7 @@ public class Ann
 				FeedForward(dataset,3);
 				break;
 			}
+			
 			WeightsCorrection();
 		}
 		
