@@ -1,9 +1,11 @@
 package executor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
-import ann.Ann_algorithm;
+import ann.Ann;
+import ann.Trainer;
 import ann.Const;
 
 /**
@@ -15,9 +17,10 @@ public class Main
 {
 	public static void main (String args[])
 	{
-		ArrayList<Byte> genotype_xor = SetGenotype();	
-		Ann_algorithm my_ann = new Ann_algorithm(genotype_xor, Const.INPUTS, Const.OUPUTS, Const.LEARN_FACTOR);	//genotype, inputs and ouputs
-		my_ann.TrainingOffline(Const.TRAININGS);
+		ArrayList<Byte> genotype_xor = SetGenotype();
+		Ann ann = new Ann(genotype_xor, Const.INPUTS, Const.OUPUTS);	//genotype, inputs and ouputs
+		Trainer trainer = new Trainer(ann, Const.LEARN_FACTOR);	//genotype, inputs and ouputs
+		trainer.TrainingOffline(Const.TRAININGS);
 		/*
 		double htan = my_ann.HyperbolicTan(0.36);
 		double value = my_ann.ArcHyperbolicTan(htan);
@@ -81,7 +84,6 @@ public class Main
 		genotype.add((byte) 1);
 		genotype.add((byte) 1);
 		*/
-		
 		return genotype;
 	}
 }

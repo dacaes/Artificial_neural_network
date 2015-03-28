@@ -12,7 +12,7 @@ import ann.Const.EvalType;;
  * @author Daniel Castaño Estrella
  *
  */
-public class Ann_algorithm
+public class Trainer
 {
 	//NEURONS
 	final int length_I;
@@ -37,106 +37,15 @@ public class Ann_algorithm
 	Ann ann;
 	Ann ann_last;
 	
-	public Ann_algorithm(ArrayList<Byte> genotype, int inputs, int outputs, double learn_factor)
+	public Trainer(Ann ann, double learn_factor)
 	{
-		ann = new Ann();
 		this.learn_factor = learn_factor;					//store the learn factor
-		this.length_I = inputs;
-		this.length_O = outputs;
-		final int gen_size = genotype.size();				//store the genontype size
 		
-		final int blocks_length = length_I * length_O;		//length of the blocks of the genotype
-		this.length_H = gen_size / blocks_length - 1;		// -1 because of the i_o
-		
-		//arrays for storing values of the neurons
-		ann.neurons_I = new double[length_I];					//input value
-		ann.neurons_H = new double[length_H];					//length_H value
-		ann.neurons_O = new double[length_O];					//output value
-		
-		//arrays for storing mapping of weights
-		ann.mapping_I_O = new Byte[length_I][length_O];		//input -> output mapping
-		ann.mapping_H_I = new Byte[length_H][length_I];			//length_H -> input mapping
-		ann.mapping_H_O = new Byte[length_H][length_O];		//length_H -> output mapping
-		
-		//arrays for storing values of the weights
-		ann.weights_I_O = new double[length_I][length_O];		//input -> output weight
-		ann.weights_H_I = new double[length_H][length_I];		//length_H -> input weight
-		ann.weights_H_O = new double[length_H][length_O];		//length_H -> output weight
-		
-		ann.weights_H_BIAS = new double[length_H];				//length_H bias weight
-		ann.weights_O_BIAS = new double[length_O];				//output bias weight
-		
-		//Mapping of the connections of the ann.
-		WeightMapping(genotype, gen_size, blocks_length);
-		
-		//first random weights
-		WeightsGen();
-	}
-	
-	/**
-	 * This method do the mapping of the connections of the ann.
-	 * @param genotype
-	 * @param gen_size
-	 * @param blocks_length
-	 * @param length_I
-	 * @param length_O
-	 */
-	private void WeightMapping(ArrayList<Byte> genotype, final int gen_size, final int blocks_length)
-	{
-		for (int i = 0; i < gen_size; i++)
-		{
-			Byte val = genotype.get(i);
-			
-			//input ->  output connections mapping
-			if(i < blocks_length)
-			{
-				int input = 0;
-				int substraction = i;
-				
-				while(substraction >= length_O)
-				{
-					input++;
-					substraction -= length_O;
-				}				
-				
-				ann.mapping_I_O[input][substraction] = val;
-			}
-				
-			//length_H connections mapping
-			else 
-			{
-				int length_H_neuron = 0;
-				int substraction = i - blocks_length;
-				
-				while(substraction >= blocks_length)
-				{
-					length_H_neuron++;
-					substraction -= blocks_length;
-				}				
-				
-				int input_index, output_index;
+		this.ann = ann;
+		this.length_I = ann.neurons_I.length;
+		this.length_H = ann.neurons_H.length;
+		this.length_O = ann.neurons_O.length;
 
-				
-				if(length_I - 1 == 0)
-					input_index = 0;
-				else
-					input_index = substraction / (length_I - 1);
-
-				output_index = substraction % (length_O);
-
-				
-				//input ->  length_H connections mapping
-				if(ann.mapping_H_I[length_H_neuron][input_index] == null || ann.mapping_H_I[length_H_neuron][input_index] == 0)
-					ann.mapping_H_I[length_H_neuron][input_index] = val;
-				
-				//length_H ->  output connections mapping
-				if(ann.mapping_H_O[length_H_neuron][output_index] == null || ann.mapping_H_O[length_H_neuron][output_index] == 0)
-					ann.mapping_H_O[length_H_neuron][output_index] = val;
-			}
-		}
-		
-		if(Const.DEBUG)
-			PrintWeightMapping();
 	}
 	
 	private void WeightsGen()
@@ -196,6 +105,9 @@ public class Ann_algorithm
 	
 	public void TrainingOffline(int training_iterations)
 	{	
+		//first random weights
+		WeightsGen();
+				
 		int sets = 4;
 		int min = 0;
 		boolean binary = true;
@@ -206,7 +118,7 @@ public class Ann_algorithm
 		
 		double[][] dataset = datagen.GetDataset();
 		
-		double last_eval_error = 9999;
+		double last_eval_error = Integer.MAX_VALUE;
 		double eval_error = 0;
 		for(int i = 0 ; i < training_iterations ; i++)
 		{
@@ -285,6 +197,14 @@ public class Ann_algorithm
 			}
 			
 			WeightsCorrection();
+		}
+		
+		if(Const.ETYPE == EvalType.EARLY_STOP)
+		{
+			FeedForward(dataset,0);
+			FeedForward(dataset,1);
+			FeedForward(dataset,2);
+			FeedForward(dataset,3);
 		}
 		
 		System.out.println("END");
@@ -580,55 +500,6 @@ public class Ann_algorithm
 			else
 				System.out.print("\n\n");
 		}
-	}
-	
-	public void PrintWeightMapping()
-	{
-		System.out.println("###_WEIGHT MAPPING_###\n");
-		System.out.println("IO_WM: ");
-		for(int i = 0; i < length_I ; i++ )
-		{
-			for(int j = 0; j < length_O ; j++ )
-			{
-				System.out.print("I[" + i + "] -> O[" + j + "]:__ ");
-				System.out.print(ann.mapping_I_O[i][j]);
-				if(j + 1 < length_O)
-					System.out.print("\n");
-				else
-					System.out.print("\n\n");
-			}
-		}
-		System.out.print("\n\n");
-		
-		System.out.println("HI_WM: ");
-		for(int i = 0; i < length_H ; i++ )
-		{
-			for(int j = 0; j < length_I ; j++ )
-			{
-				System.out.print("H[" + i + "] -> I[" + j + "]:__ ");
-				System.out.print(ann.mapping_H_I[i][j]);
-				if(j + 1 < length_I)
-					System.out.print("\n");
-				else
-					System.out.print("\n\n");
-			}
-		}
-		System.out.print("\n\n");
-		
-		System.out.println("HO_WM: ");
-		for(int i = 0; i < length_H ; i++ )
-		{
-			for(int j = 0; j < length_O ; j++ )
-			{
-				System.out.print("H[" + i + "] -> O[" + j + "]:__ ");
-				System.out.print(ann.mapping_H_O[i][j]);
-				if(j + 1 < length_O)
-					System.out.print("\n");
-				else
-					System.out.print("\n\n");
-			}
-		}
-		System.out.print("#############\n");
 	}
 	
 	public void PrintWeights()
