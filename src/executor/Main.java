@@ -3,7 +3,7 @@ package executor;
 import java.util.ArrayList;
 import java.util.Random;
 
-import ann.Ann;
+import ann.Ann_algorithm;
 import ann.Const;
 
 /**
@@ -16,7 +16,7 @@ public class Main
 	public static void main (String args[])
 	{
 		ArrayList<Byte> genotype_xor = SetGenotype();	
-		Ann my_ann = new Ann(genotype_xor, Const.INPUTS, Const.OUPUTS, Const.LEARN_FACTOR);	//genotype, inputs and ouputs
+		Ann_algorithm my_ann = new Ann_algorithm(genotype_xor, Const.INPUTS, Const.OUPUTS, Const.LEARN_FACTOR);	//genotype, inputs and ouputs
 		my_ann.TrainingOffline(Const.TRAININGS);
 		/*
 		double htan = my_ann.HyperbolicTan(0.36);
